@@ -2,7 +2,7 @@ import interfaceUtils
 
 
 def setBlock(x, y, z, material, isBatched=True):
-    interfaceUtils.getBlock(x, y, z, material, isBatched)
+    interfaceUtils.setBlock(x, y, z, material, isBatched)
 
 
 # Create solid shape filling the given area.
