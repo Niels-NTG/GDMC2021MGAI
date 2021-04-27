@@ -4,12 +4,14 @@ import nbt
 # With this class you can load in an NBT-encoded Minecraft Structure file
 # (https://minecraft.fandom.com/wiki/Structure_Block_file_format) and place them in the world.
 
+
 class Structure:
 
     ROTATE_NORTH = 0
     ROTATE_WEST = 1
     ROTATE_SOUTH = 2
     ROTATE_EAST = 3
+    ROTATIONS = ["north", "east", "south", "west"]
 
     def __init__(self, structure, x, y, z, rotation=ROTATE_NORTH):
         self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
@@ -65,6 +67,18 @@ class Structure:
         if "Properties" in self.file["palette"][block["state"].value].keys():
             for key in self.file["palette"][block["state"].value]["Properties"].keys():
                 properties[key] = self.file["palette"][block["state"].value]["Properties"][key].value
+
+                # Apply rotation to block property if needed.
+                if key == "facing" and self.rotation != self.ROTATE_NORTH:
+                    properties[key] = self.ROTATIONS[
+                        (self.ROTATIONS.index(properties[key]) + self.rotation) % len(self.ROTATIONS)
+                    ]
+                if key == "axis" and (self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST):
+                    if properties[key] == "x":
+                        properties[key] = "z"
+                    elif properties[key] == "z":
+                        properties[key] = "x"
+
         return properties
 
     def place(self, includeAir=False):
