@@ -9,13 +9,14 @@ This module contains functions to:
 """
 __all__ = ['requestBuildArea', 'runCommand',
            'setBlock', 'getBlock',
-           'placeBlockBatched', 'sendBlocks']
+           '_placeBlockBatched', 'sendBlocks']
 # __version__
 
 import requests
 from requests.exceptions import ConnectionError
 
 session = requests.Session()
+
 
 def requestBuildArea():
     """**Requests a build area and returns it as an dictionary containing 
@@ -53,14 +54,21 @@ def getBlock(x, y, z):
     # print("{}, {}, {}: {} - {}".format(x, y, z, response.status_code, response.text))
 
 
-def setBlock(x, y, z, material, isBatched=True):
+def setBlock(x, y, z, material, properties, isBatched=True):
+    serialisedProperties = "[]"
+    if properties and isinstance(properties, dict):
+        serialisedProperties = "["
+        for key in properties.keys():
+            serialisedProperties += key + "=" + properties[key] + ","
+        serialisedProperties += "]"
+
     if isBatched:
-        return placeBlockBatched(x, y, z, material)
+        return _placeBlockBatched(x, y, z, material, serialisedProperties)
     """**Places a block in the world.**"""
     url = f'http://localhost:9000/blocks?x={x}&y={y}&z={z}'
     # print('setting block {} at {} {} {}'.format(str, x, y, z))
     try:
-        response = session.put(url, material)
+        response = session.put(url, material + serialisedProperties)
     except ConnectionError:
         return "0"
     return response.text
@@ -79,9 +87,9 @@ def fill(fromX, fromY, fromZ, toX, toY, toZ, material, fillMode="replace"):
 blockBuffer = []
 
 
-def placeBlockBatched(x, y, z, material, limit=50):
+def _placeBlockBatched(x, y, z, material, properties, limit=50):
     """**Place a block in the buffer and send if the limit is exceeded.**"""
-    registerSetBlock(x, y, z, material)
+    _registerSetBlock(x, y, z, material, properties)
     if len(blockBuffer) >= limit:
         return sendBlocks(0, 0, 0)
     else:
@@ -91,7 +99,7 @@ def placeBlockBatched(x, y, z, material, limit=50):
 def sendBlocks(x=0, y=0, z=0, retries=5):
     """**Sends the buffer to the server and clears it.**"""
     global blockBuffer
-    body = str.join("\n", ['~{} ~{} ~{} {}'.format(*bp) for bp in blockBuffer])
+    body = str.join("\n", ['~{} ~{} ~{} {}{}'.format(*bp) for bp in blockBuffer])
     url = f'http://localhost:9000/blocks?x={x}&y={y}&z={z}'
     try:
         response = session.put(url, body)
@@ -103,11 +111,10 @@ def sendBlocks(x=0, y=0, z=0, retries=5):
             return sendBlocks(x, y, z, retries - 1)
 
 
-def registerSetBlock(x, y, z, str):
+def _registerSetBlock(x, y, z, material, properties):
     """**Places a block in the buffer.**"""
     global blockBuffer
-    # blockBuffer += () '~{} ~{} ~{} {}'.format(x, y, z, str)
-    blockBuffer.append((x, y, z, str))
+    blockBuffer.append((x, y, z, material, properties))
 
 
 def clearBlockBuffer():

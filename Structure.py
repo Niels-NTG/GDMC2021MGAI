@@ -58,12 +58,23 @@ class Structure:
             return blockMaterial
         return replacementMaterial
 
+    # Get block properties (also known as block states: https://minecraft.fandom.com/wiki/Block_states) of a block.
+    # This may contain information on the orientation of a block or open or closed stated of a door.
+    def _getBlockProperties(self, block):
+        properties = dict()
+        if "Properties" in self.file["palette"][block["state"].value].keys():
+            for key in self.file["palette"][block["state"].value]["Properties"].keys():
+                properties[key] = self.file["palette"][block["state"].value]["Properties"][key].value
+        return properties
+
     def place(self, includeAir=False):
         for block in self.file["blocks"]:
             blockMaterial = self._getBlockMaterial(block)
+
             # Skip empty parts of the structure unless includeAir is True.
             if includeAir is False and blockMaterial == "minecraft:air":
                 continue
 
             blockPosition = self._calcBlockPosition(block)
-            WorldEdit.setBlock(blockPosition[0], blockPosition[1], blockPosition[2], blockMaterial)
+            blockProperties = self._getBlockProperties(block)
+            WorldEdit.setBlock(blockPosition[0], blockPosition[1], blockPosition[2], blockMaterial, blockProperties)
