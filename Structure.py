@@ -21,6 +21,15 @@ class Structure:
         self.rotation = rotation
         self.materialReplacements = dict()
 
+    def getSizeX(self):
+        return self.file["size"][0].value
+
+    def getSizeY(self):
+        return self.file["size"][1].value
+
+    def getSizeZ(self):
+        return self.file["size"][2].value
+
     # Add dict of materials from the structure file that need replaced with something else.
     # eg. "minecraft:iron_block", "minecraft:gold_block" will put gold blocks where the structure file has iron blocks
     # when placing the structure in the world.
