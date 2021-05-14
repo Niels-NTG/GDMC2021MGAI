@@ -101,3 +101,5 @@ class Structure:
             blockPosition = self._calcBlockPosition(block)
             blockProperties = self._getBlockProperties(block)
             WorldEdit.setBlock(blockPosition[0], blockPosition[1], blockPosition[2], blockMaterial, blockProperties)
+
+        interfaceUtils.sendBlocks()
