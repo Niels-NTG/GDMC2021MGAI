@@ -11,17 +11,20 @@ import interfaceUtils
 class Structure:
 
     ROTATE_NORTH = 0
-    ROTATE_WEST = 1
+    ROTATE_EAST = 1
     ROTATE_SOUTH = 2
-    ROTATE_EAST = 3
+    ROTATE_WEST = 3
     ROTATIONS = ["north", "east", "south", "west"]
+    rotation = ROTATE_NORTH
+
+    origin = [0, 0, 0]
 
     def __init__(self, structure, x=0, y=0, z=0, rotation=ROTATE_NORTH):
         self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
         self.x = x
         self.y = y
         self.z = z
-        self.rotation = rotation
+        self.setRotation(rotation)
         self.materialReplacements = dict()
 
     def setPosition(self, x=None, y=None, z=None):
@@ -32,13 +35,45 @@ class Structure:
         if z is not None:
             self.z = z
 
+    def setRotation(self, rotation):
+        if rotation is not None and 0 <= rotation <= 3:
+            self.rotation = rotation
+
+        # Change position of blocks inside structure to match rotation.
+        if rotation != self.ROTATE_NORTH:
+            for block in self.file["blocks"]:
+                oldX = block["pos"][0].value
+                oldZ = block["pos"][2].value
+                if rotation == self.ROTATE_EAST:
+                    block["pos"][0].value = -oldZ
+                    block["pos"][2].value = oldX
+                elif rotation == self.ROTATE_SOUTH:
+                    block["pos"][0].value = -oldX
+                    block["pos"][2].value = -oldZ
+                elif rotation == self.ROTATE_WEST:
+                    block["pos"][0].value = oldZ
+                    block["pos"][2].value = -oldX
+
+            # Change origin point depending on rotation
+            if rotation == self.ROTATE_EAST:
+                self.origin[0] = self.getSizeX()
+            elif rotation == self.ROTATE_SOUTH:
+                self.origin[0] = self.getSizeX()
+                self.origin[2] = self.getSizeZ()
+            elif rotation == self.ROTATE_WEST:
+                self.origin[2] = self.getSizeZ()
+
     def getSizeX(self):
+        if self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST:
+            return self.file["size"][2].value
         return self.file["size"][0].value
 
     def getSizeY(self):
         return self.file["size"][1].value
 
     def getSizeZ(self):
+        if self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST:
+            return self.file["size"][0].value
         return self.file["size"][2].value
 
     # Add dict of materials from the structure file that need replaced with something else.
@@ -46,32 +81,6 @@ class Structure:
     # when placing the structure in the world.
     def replaceMaterial(self, existingMaterial, newMaterial):
         self.materialReplacements[existingMaterial] = newMaterial
-
-    def _calcBlockPosition(self, block):
-        if self.rotation == 0:
-            return [
-                block["pos"][0].value + self.x,
-                block["pos"][1].value + self.y,
-                block["pos"][2].value + self.z
-            ]
-        elif self.rotation == 1:
-            return [
-                block["pos"][2].value + self.z,
-                block["pos"][1].value + self.y,
-                block["pos"][0].value + self.x
-            ]
-        elif self.rotation == 2:
-            return [
-                self.x - block["pos"][0].value,
-                block["pos"][1].value + self.y,
-                block["pos"][2].value + self.z
-            ]
-        elif self.rotation == 3:
-            return [
-                block["pos"][2].value + self.z,
-                block["pos"][1].value + self.y,
-                self.x - block["pos"][0].value
-            ]
 
     def _getBlockMaterial(self, block):
         blockMaterial = self.file["palette"][block["state"].value]['Name'].value
@@ -109,7 +118,11 @@ class Structure:
             if includeAir is False and blockMaterial == "minecraft:air":
                 continue
 
-            blockPosition = self._calcBlockPosition(block)
+            blockPosition = [
+                block["pos"][0].value + self.x,
+                block["pos"][1].value + self.y,
+                block["pos"][2].value + self.z
+              ]
             blockProperties = self._getBlockProperties(block)
             WorldEdit.setBlock(blockPosition[0], blockPosition[1], blockPosition[2], blockMaterial, blockProperties)
 

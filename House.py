@@ -3,8 +3,6 @@ from Structure import Structure
 import numpy as np
 import os
 
-# TODO implement rotation
-
 
 class House:
 
@@ -12,7 +10,7 @@ class House:
     houseWidth = 22
     houseDepth = 22
 
-    def __init__(self, x, y, z, rotation=Structure.ROTATE_NORTH):
+    def __init__(self, x=0, y=0, z=0, rotation=Structure.ROTATE_NORTH):
         self.x = x
         self.y = y
         self.z = z
@@ -60,14 +58,9 @@ class House:
             yOffset = yOffset + structure.getSizeY()
 
     def _getStructure(self, structureType):
-        return Structure(self.rng.choice(self.structures[structureType]))
+        return Structure(self.rng.choice(self.structures[structureType]), rotation=self.rotation)
 
     def _buildStructure(self, structure, yOffset):
-        zOffset = self.z - structure.getSizeZ()
-        structure.setPosition(self.x, self.y + yOffset, zOffset)
+        structure.setPosition(self.x, self.y + yOffset, self.z)
         structure.place()
-        WorldEdit.fillEmpty(
-            self.x, self.y + yOffset, self.z,
-            self.x + self.houseWidth - 1, self.y + yOffset, zOffset + self.houseDepth,
-            self.interiorFloorMaterial
-        )
+
