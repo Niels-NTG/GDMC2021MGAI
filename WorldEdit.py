@@ -29,4 +29,4 @@ def outlineFill(fromX, fromY, fromZ, toX, toY, toZ, material):
 
 # Replace all blocks in the given area with air.
 def clear(fromX, fromY, fromZ, toX, toY, toZ):
-    return fill(fromX, fromY, fromZ, toX, toY, toZ, "air")
+    return fill(fromX, fromY, fromZ, toX, toY, toZ, "minecraft:air", fillMode="destroy")

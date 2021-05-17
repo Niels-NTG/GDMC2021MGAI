@@ -31,7 +31,7 @@ def requestBuildArea():
 
 def runCommand(command):
     """**Executes one or multiple minecraft commands (separated by newlines).**"""
-    # print("running cmd " + command)
+    print("running cmd " + command)
     url = 'http://localhost:9000/command'
     try:
         response = session.post(url, bytes(command, "utf-8"))

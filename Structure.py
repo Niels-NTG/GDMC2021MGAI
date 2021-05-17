@@ -1,9 +1,12 @@
 import WorldEdit
 import nbt
+import interfaceUtils
 
 # With this class you can load in an NBT-encoded Minecraft Structure file
 # (https://minecraft.fandom.com/wiki/Structure_Block_file_format) and place them in the world.
 
+
+# TODO add optional JSON file to each structure defining the origin of the structure
 
 class Structure:
 
@@ -13,13 +16,21 @@ class Structure:
     ROTATE_EAST = 3
     ROTATIONS = ["north", "east", "south", "west"]
 
-    def __init__(self, structure, x, y, z, rotation=ROTATE_NORTH):
+    def __init__(self, structure, x=0, y=0, z=0, rotation=ROTATE_NORTH):
         self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
         self.x = x
         self.y = y
         self.z = z
         self.rotation = rotation
         self.materialReplacements = dict()
+
+    def setPosition(self, x=None, y=None, z=None):
+        if x is not None:
+            self.x = x
+        if y is not None:
+            self.y = y
+        if z is not None:
+            self.z = z
 
     def getSizeX(self):
         return self.file["size"][0].value
