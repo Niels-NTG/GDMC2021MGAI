@@ -1,13 +1,3 @@
-# ! /usr/bin/python3
-"""### Provides tools for maps and heightmaps
-
-This module contains functions to:
-* Calculate a heightmap ideal for building
-* Visualise numpy arrays
-"""
-__all__ = ['calcGoodHeightmap']
-# __version__
-
 import numpy as np
 
 
@@ -39,6 +29,12 @@ def calcGoodHeightmap(worldSlice):
     return np.array(np.minimum(hm_mbnl, heightmapNoTrees))
 
 
-def normalize(array):
-    """**Normalizes the array to contain values from 0 to 1.**"""
-    return (array - array.min()) / (array.max() - array.min())
+def rotatePointAroundOrigin(origin, point, rotation):
+    angle = np.deg2rad(rotation * 90)
+    if rotation % 2 == 1:
+        angle = np.deg2rad(rotation * 90) - np.pi / 2
+    return [
+        int(np.round(np.cos(angle) * (point[0] - origin[0]) - np.sin(angle) * (point[2] - origin[2]) + origin[0], 4)),
+        point[1],
+        int(np.round(np.sin(angle) * (point[0] - origin[0]) + np.cos(angle) * (point[2] - origin[2]) + origin[2], 4))
+    ]
