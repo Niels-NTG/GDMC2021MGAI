@@ -7,6 +7,7 @@ from random import sample
 
 objects = ['street/tree1','street/tree2','street/tree3','street/tree4','street/lantern']
 crosswalks = ['street/crosswalk_s', 'street/crosswalk_plain']
+wild = ['street/wild', 'street/wild1','street/wild2','street/wild3','street/wild4','street/wild5','street/wild6','street/wild7',]
 
 def vertical_street(x, y, z):
     x_increase = 0
@@ -208,6 +209,56 @@ def city_network(x, y, z):
     vertical_street(x + init_x + 65, y, z + init_z + 86 + 86)
     vertical_street(x + init_x + 65 + 86, y, z + init_z + 86 + 86)
 
+def city_perimeter(x, y, z):
+    #bottom left corner
+    wild_growth_corner(x, y, z, 0)
+    #right corner
+    wild_growth_corner(x, y, z + 256, 3)
+    #top left corner
+    wild_growth_corner(x + 255, y, z, 1)
+    #top right corner
+    wild_growth_corner(x + 255, y, z + 256, 2)
+
+    # left row
+    wild_growth_v(x + 10, y, z)
+    wild_growth_v(x + 10 + 86, y, z)
+    wild_growth_v(x + 10 + 86 + 86, y, z)
+
+    #bottom row
+    wild_growth_h(x, y, z + 17, 3)
+    wild_growth_h(x, y, z + 17 + 86, 3)
+    wild_growth_h(x, y, z + 17 + 86 + 86, 3)
+
+    #top row
+    wild_growth_h(x + 255, y, z + 11, 1)
+    wild_growth_h(x+ 255, y, z + 11 + 86, 1)
+    wild_growth_h(x + 255, y, z + 11 + 86 + 86, 1)
+
+    #right row
+    wild_growth_v(x + 17, y, z + 256, 2)
+    wild_growth_v(x + 17 + 86, y, z  + 256, 2)
+    wild_growth_v(x + 17 + 86 + 86, y, z  + 256, 2)
+
+    
+def wild_growth_v(x, y, z, rotation=0):
+    x_increase = 0
+    for i in range(8):
+        type_wild = sample(wild, 1)[0]
+        wild_element = Structure.Structure(type_wild, x + x_increase, y, z, rotation)
+        wild_element.place()
+        x_increase += 8
+
+def wild_growth_h(x, y, z, rotation=0):
+    z_increase = 0
+    for i in range(8):
+        type_wild = sample(wild, 1)[0]
+        wild_element = Structure.Structure(type_wild, x, y, z + z_increase, rotation)
+        wild_element.place()
+        z_increase += 8
+
+def wild_growth_corner(x,y,z, rotation=0):
+    wild_corner = Structure.Structure('street/wild_corner', x, y, z, rotation)
+    wild_corner.place()
 
 #square city 
 
@@ -243,4 +294,6 @@ def city_network(x, y, z):
 #sidewalk.place()
 
 #insert your x,y,z values y should be 4!
-city_network(-380, 4, 14)
+#city_network(-650, 4, 14)
+city_perimeter(-1300, 3, 394)
+city_network(-1300, 4, 394)
