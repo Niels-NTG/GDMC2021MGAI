@@ -56,12 +56,12 @@ class Structure:
 
             # Change origin point depending on rotation
             if rotation == self.ROTATE_EAST:
-                self.origin[0] = self.getSizeX()
+                self.origin[0] = -self.getSizeX() + 1
             elif rotation == self.ROTATE_SOUTH:
-                self.origin[0] = self.getSizeX()
-                self.origin[2] = self.getSizeZ()
+                self.origin[0] = -self.getSizeX() + 1
+                self.origin[2] = -self.getSizeZ() + 1
             elif rotation == self.ROTATE_WEST:
-                self.origin[2] = self.getSizeZ()
+                self.origin[2] = -self.getSizeZ() + 1
 
     def getSizeX(self):
         if self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST:
