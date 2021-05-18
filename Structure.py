@@ -1,3 +1,4 @@
+import numpy as np
 import WorldEdit
 import nbt
 import interfaceUtils
@@ -102,6 +103,18 @@ class Structure:
         if self.rotation == self.ROTATE_NORTH or self.rotation == self.ROTATE_EAST:
             return 1
         return -1
+
+    def getShortestDimension(self):
+        return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+
+    def getLongestDimension(self):
+        return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+
+    def getShortestSize(self):
+        return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getShortestDimension()]
+
+    def getLongestSize(self):
+        return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getLongestDimension()]
 
     # Add dict of materials from the structure file that need replaced with something else.
     # eg. "minecraft:iron_block", "minecraft:gold_block" will put gold blocks where the structure file has iron blocks
