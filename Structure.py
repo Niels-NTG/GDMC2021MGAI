@@ -150,6 +150,16 @@ class Structure:
 
         return properties
 
+    def getMaterialList(self):
+        self.materials = []
+        for block in self.file["blocks"]:
+            blockMaterial = self._getBlockMaterial(block)
+            if blockMaterial not in self.materials:
+                self.materials.append(blockMaterial)
+        
+        return self.materials
+        
+
     def place(self, includeAir=False):
         for block in self.file["blocks"]:
             blockMaterial = self._getBlockMaterial(block)
