@@ -7,6 +7,8 @@ from CornerHouse import CornerHouse
 from MiddleHouse import MiddleHouse
 from Courtyard import Courtyard
 from Structure import Structure 
+import street
+import WorldEdit
 
 
 # Do we send blocks in batches to speed up the generation process?
@@ -59,10 +61,38 @@ def buildHouseblock(x, y, z):
     
     court = Courtyard(x=x+21,y=y,z=z+21)
     court.place()
+#builds foundation for a 64x64 block
+def foundation(x, y, z):
+    farX = x + 63
+    farZ = z + 63
+    WorldEdit.fill(x, y - 1, z, farX, y, farZ, "minecraft:stone_bricks")
+
+#y = 4 for on the surface
+def generate_city_blocks(x, y, z):
+    increase = 0
+    for i in range(3):
+        foundation(x + 10, 4, z + 10 + increase)
+        buildHouseblock(x + 10, 5, z + 10 + increase)
+        increase += 86
+
+    increase = 0
+    for i in range(3):
+        foundation(x + 10 + 86, 4, z + 10 + increase)
+        buildHouseblock(x + 10 + 86, 5, z + 10 + increase)
+        increase += 86
+    increase = 0
+    for i in range(3):
+        foundation(x + 10 + 86 + 86, 4, z + 10 + increase)
+        buildHouseblock(x + 10 + 86 + 86, 5, z + 10 + increase)
+        increase += 86
 
 
+#USE y = 4 for spawning on the surface!
+def generate_city(x, y, z):
+    generate_city_blocks(x, y, z)
+    street.city_location(x, y-1 ,z)
 
-buildHouseblock(27, 4, -116)
+generate_city(-349, 4, 770)
 
 if USE_BATCHING:
     interfaceUtils.sendBlocks()

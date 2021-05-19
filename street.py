@@ -5,6 +5,7 @@ import nbt
 import numpy as np
 from random import sample
 
+
 objects = ['street/tree1','street/tree2','street/tree3','street/tree4','street/lantern']
 crosswalks = ['street/crosswalk_s', 'street/crosswalk_plain']
 wild = ['street/wild', 'street/wild1','street/wild2','street/wild3','street/wild8','street/wild5','street/wild6','street/wild7',]
@@ -54,7 +55,7 @@ def vertical_street(x, y, z):
     #objects sidewalk
     x_increase = 2
     y_increase = 0   
-    z_increase = 1
+    z_increase = 2
     for i in range(8):
         element = select_object(x, y, z,x_increase, y_increase, z_increase) 
         if element != None:
@@ -65,7 +66,7 @@ def vertical_street(x, y, z):
     #objects sidewalk2
     x_increase = 2
     y_increase = 0   
-    z_increase = 18
+    z_increase = 17
 
     for i in range(8):
         element = select_object(x, y, z, x_increase, y_increase, z_increase) 
@@ -73,45 +74,7 @@ def vertical_street(x, y, z):
             element.place()
 
         x_increase += 8
-    
-def intersection(x,y,z):
-    epsilon = np.random.randint(low=1, high=4)
-    if epsilon == 2:
-        intersection = Structure.Structure('street/intersection_plain', x, y -1, z, 0)
         
-    elif epsilon == 3:
-        intersection = Structure.Structure('street/intersection_1_stoplight', x, y-1, z, 0)
-    else: 
-        intersection = Structure.Structure('street/intersection_2_stoplight', x, y-1, z, 0)
-    
-    intersection.place()
-    
-def select_object(x, y, z, x_increase, y_increase, z_increase): 
-    
-    lantern = Structure.Structure('street/lantern', x + x_increase, y, z + z_increase, 0)
-    tree1 = Structure.Structure('street/tree_1', x - 1 + x_increase, y, z - 1 + z_increase, 0)
-    tree2 = Structure.Structure('street/tree_2', x + x_increase, y, z + z_increase, 0)
-    tree3 = Structure.Structure('street/tree_3', x - 1 + x_increase, y, z - 1 + z_increase, 0)
-    tree4 = Structure.Structure('street/tree_4', x - 1 + x_increase, y, z - 1 + z_increase, 0)
-    
-
-    #usually trees, sometimes lanterns sometimes nothing
-    epsilon = np.random.randint(low=1, high=7)
-    
-    element = None
-    if epsilon == 2:
-        element = tree1
-    elif epsilon == 3:
-        element = tree2
-    elif epsilon == 4: 
-        element = tree3
-    elif epsilon == 5:
-        element = tree4    
-    elif epsilon == 6:
-        element = lantern 
-    
-    return element
-    
 def horizontal_street(x, y, z):
     x_increase = 0
     z_increase = 0
@@ -153,7 +116,7 @@ def horizontal_street(x, y, z):
         sidewalk.place()
 
     #objects sidewalk
-    x_increase = -3
+    x_increase = -4
     y_increase = 0   
     z_increase = 2
     for i in range(8):
@@ -164,7 +127,7 @@ def horizontal_street(x, y, z):
         z_increase += -8 
 
     #objects sidewalk2
-    x_increase += -17
+    x_increase = -19
     y_increase = 0   
     z_increase = 2
 
@@ -174,6 +137,45 @@ def horizontal_street(x, y, z):
             element.place()
 
         z_increase += -8
+    
+def intersection(x,y,z):
+    epsilon = np.random.randint(low=1, high=4)
+    if epsilon == 2:
+        intersection = Structure.Structure('street/intersection_plain', x, y -1, z, 0)
+        
+    elif epsilon == 3:
+        intersection = Structure.Structure('street/intersection_1_stoplight', x, y-1, z, 0)
+    else: 
+        intersection = Structure.Structure('street/intersection_2_stoplight', x, y-1, z, 0)
+    
+    intersection.place()
+    
+def select_object(x, y, z, x_increase, y_increase, z_increase): 
+    
+    lantern = Structure.Structure('street/lantern', x + x_increase, y, z + z_increase, 0)
+    tree1 = Structure.Structure('street/tree_1', x - 1 + x_increase, y, z - 1 + z_increase, 0)
+    tree2 = Structure.Structure('street/tree_2', x + x_increase, y, z + z_increase, 0)
+    tree3 = Structure.Structure('street/tree_3', x - 1 + x_increase, y, z - 1 + z_increase, 0)
+    tree4 = Structure.Structure('street/tree_4', x - 1 + x_increase, y, z - 1 + z_increase, 0)
+    
+
+    #usually trees, sometimes lanterns sometimes nothing
+    epsilon = np.random.randint(low=1, high=7)
+    
+    element = None
+    if epsilon == 2:
+        element = tree1
+    elif epsilon == 3:
+        element = tree2
+    elif epsilon == 4: 
+        element = tree3
+    elif epsilon == 5:
+        element = tree4    
+    elif epsilon == 6:
+        element = lantern 
+    
+    return element
+    
 
 def wild_growth_v(x, y, z, rotation=0):
     x_increase = 0
@@ -311,8 +313,8 @@ def city_perimeter(x, y, z):
     #wild perimeter
     #bottom left corner
     wild_growth_corner(x, y, z, 0)
-    #right corner
-    wild_growth_corner(x, y, z + 256, 3)
+    #bottom right corner
+    wild_growth_corner(x, y, z + 255, 3)
     #top left corner
     wild_growth_corner(x + 255, y, z, 1)
     #top right corner
@@ -355,6 +357,7 @@ def city_perimeter(x, y, z):
     broken_street(x + 250, 3, z + 256 - 86, 1)
     broken_street(x + 250, 3, z + 256 - 86 - 86, 1)
 
+#builds city
 def city_location(x, y, z):
     city_perimeter(x, y,z)
     city_network(x, y + 1, z)
