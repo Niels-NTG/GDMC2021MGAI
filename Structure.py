@@ -21,7 +21,7 @@ class Structure:
     rotation = ROTATE_NORTH
 
     origin = [0, 0, 0]
-    debug = True
+    debug = False
 
     def __init__(self, structure, x=0, y=0, z=0, rotation=ROTATE_NORTH):
         self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
