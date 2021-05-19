@@ -29,6 +29,10 @@ def calcGoodHeightmap(worldSlice):
     return np.array(np.minimum(hm_mbnl, heightmapNoTrees))
 
 
+def getMostFrequentHeight(heightMap):
+    return np.bincount(heightMap.flatten()).argmax()
+
+
 def rotatePointAroundOrigin(origin, point, rotation):
     angle = np.deg2rad(rotation * 90)
     if rotation % 2 == 1:
