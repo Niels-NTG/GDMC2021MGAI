@@ -1,7 +1,4 @@
 import Structure
-import interfaceUtils
-import WorldEdit
-import nbt
 import numpy as np
 from random import sample
 
@@ -20,7 +17,7 @@ def vertical_street(x, y, z):
     for i in range(8):
         sidewalk = Structure.Structure('street/sidewalk_object_middle', x + x_increase, y, z, 0)
         x_increase += 8
-        sidewalk.place()
+        sidewalk.place(includeAir=False)
 
     # asphalt
     x_increase = 0
@@ -51,7 +48,7 @@ def vertical_street(x, y, z):
             sidewalk = Structure.Structure('street/sidewalk_object_middle', x + x_increase, y, z + z_increase, 0)
 
         x_increase += 8
-        sidewalk.place()
+        sidewalk.place(includeAir=False)
 
     # objects sidewalk
     x_increase = 2
@@ -59,8 +56,8 @@ def vertical_street(x, y, z):
     z_increase = 2
     for i in range(8):
         element = select_object(x, y, z, x_increase, y_increase, z_increase)
-        if element != None:
-            element.place()
+        if element is not None:
+            element.place(includeAir=False)
 
         x_increase += 8
 
@@ -72,7 +69,7 @@ def vertical_street(x, y, z):
     for i in range(8):
         element = select_object(x, y, z, x_increase, y_increase, z_increase)
         if element is not None:
-            element.place()
+            element.place(includeAir=False)
 
         x_increase += 8
 
@@ -85,7 +82,7 @@ def horizontal_street(x, y, z):
     for i in range(8):
         sidewalk = Structure.Structure('street/sidewalk_object_middle', x + x_increase, y, z + z_increase, 1)
         z_increase += -8
-        sidewalk.place()
+        sidewalk.place(includeAir=False)
 
     # asphalt
     x_increase = -5
@@ -115,7 +112,7 @@ def horizontal_street(x, y, z):
             sidewalk = Structure.Structure('street/sidewalk_object_middle', x + x_increase, y, z + z_increase, 1)
 
         z_increase += 8
-        sidewalk.place()
+        sidewalk.place(includeAir=False)
 
     # objects sidewalk
     x_increase = -4
@@ -123,8 +120,8 @@ def horizontal_street(x, y, z):
     z_increase = 2
     for i in range(8):
         element = select_object(x, y, z, x_increase, y_increase, z_increase)
-        if element != None:
-            element.place()
+        if element is not None:
+            element.place(includeAir=False)
 
         z_increase += -8
 
@@ -135,8 +132,8 @@ def horizontal_street(x, y, z):
 
     for i in range(8):
         element = select_object(x, y, z, x_increase, y_increase, z_increase)
-        if element != None:
-            element.place()
+        if element is not None:
+            element.place(includeAir=False)
 
         z_increase += -8
 
@@ -184,7 +181,7 @@ def wild_growth_v(x, y, z, rotation=0):
     for i in range(8):
         type_wild = sample(wild, 1)[0]
         wild_element = Structure.Structure(type_wild, x + x_increase, y, z, rotation)
-        wild_element.place()
+        wild_element.place(includeAir=False)
         x_increase += 8
 
 
@@ -193,13 +190,13 @@ def wild_growth_h(x, y, z, rotation=0):
     for i in range(8):
         type_wild = sample(wild, 1)[0]
         wild_element = Structure.Structure(type_wild, x, y, z + z_increase, rotation)
-        wild_element.place()
+        wild_element.place(includeAir=False)
         z_increase += 8
 
 
 def wild_growth_corner(x, y, z, rotation=0):
     wild_corner = Structure.Structure('street/wild_corner', x, y, z, rotation)
-    wild_corner.place()
+    wild_corner.place(includeAir=False)
 
 
 def broken_street(x, y, z, rotation=0):
@@ -209,60 +206,60 @@ def broken_street(x, y, z, rotation=0):
         z_increase = 0
         type_sidewalk2 = sample(broken_sidewalks, 1)[0]
         b_sidewalk2 = Structure.Structure(type_sidewalk2, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk2.place()
+        b_sidewalk2.place(includeAir=False)
 
         x_increase = 17
         z_increase = 0
 
         type_sidewalk = sample(broken_sidewalks, 1)[0]
         b_sidewalk = Structure.Structure(type_sidewalk, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk.place()
+        b_sidewalk.place(includeAir=False)
 
         x_increase = 5
         z_increase = 0
 
         broken_asphalt = Structure.Structure('street/broken_asphalt', x + x_increase, y, z + z_increase, rotation)
-        broken_asphalt.place()
+        broken_asphalt.place(includeAir=False)
     # top side
     if rotation == 1:
         x_increase = 5
         z_increase = 5
         type_sidewalk2 = sample(broken_sidewalks, 1)[0]
         b_sidewalk2 = Structure.Structure(type_sidewalk2, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk2.place()
+        b_sidewalk2.place(includeAir=False)
 
         x_increase = 5
         z_increase = -12
 
         type_sidewalk = sample(broken_sidewalks, 1)[0]
         b_sidewalk = Structure.Structure(type_sidewalk, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk.place()
+        b_sidewalk.place(includeAir=False)
 
         x_increase = 5
         z_increase = -7
 
         broken_asphalt = Structure.Structure('street/broken_asphalt', x + x_increase, y, z + z_increase, rotation)
-        broken_asphalt.place()
+        broken_asphalt.place(includeAir=False)
     # right side
     if rotation == 2:
         x_increase = 10
         z_increase = -7
         type_sidewalk2 = sample(broken_sidewalks, 1)[0]
         b_sidewalk2 = Structure.Structure(type_sidewalk2, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk2.place()
+        b_sidewalk2.place(includeAir=False)
 
         x_increase = -7
         z_increase = -7
 
         type_sidewalk = sample(broken_sidewalks, 1)[0]
         b_sidewalk = Structure.Structure(type_sidewalk, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk.place()
+        b_sidewalk.place(includeAir=False)
 
         x_increase = 5
         z_increase = -7
 
         broken_asphalt = Structure.Structure('street/broken_asphalt', x + x_increase, y, z + z_increase, rotation)
-        broken_asphalt.place()
+        broken_asphalt.place(includeAir=False)
 
     # bottom side
     if rotation == 3:
@@ -270,20 +267,20 @@ def broken_street(x, y, z, rotation=0):
         z_increase = 5
         type_sidewalk2 = sample(broken_sidewalks, 1)[0]
         b_sidewalk2 = Structure.Structure(type_sidewalk2, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk2.place()
+        b_sidewalk2.place(includeAir=False)
 
         x_increase = 5
         z_increase = -12
 
         type_sidewalk = sample(broken_sidewalks, 1)[0]
         b_sidewalk = Structure.Structure(type_sidewalk, x + x_increase, y, z + z_increase, rotation)
-        b_sidewalk.place()
+        b_sidewalk.place(includeAir=False)
 
         x_increase = 5
         z_increase = 0
 
         broken_asphalt = Structure.Structure('street/broken_asphalt', x + x_increase, y, z + z_increase, rotation)
-        broken_asphalt.place()
+        broken_asphalt.place(includeAir=False)
 
 
 # spawns the streets. 10 blocks from the outline of the 256x256 grid
