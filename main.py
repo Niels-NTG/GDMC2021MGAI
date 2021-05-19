@@ -7,6 +7,7 @@ from MiddleHouse import MiddleHouse
 from Courtyard import Courtyard
 import street
 import WorldEdit
+import threading
 
 # Do we send blocks in batches to speed up the generation process?
 USE_BATCHING = True
@@ -41,12 +42,12 @@ def buildHouseblock(x, y, z):
     rotation = 0
     for (xplace, zplace) in corners:
         newhouse = CornerHouse(x=xplace, y=y, z=zplace, rotation=rotation)
-        newhouse.place()
+        threading.Thread(target=newhouse.place).start()
         rotation += 1
     rotation = 0
     for (xplace, zplace) in middles:
         newhouse = MiddleHouse(x=xplace, y=y, z=zplace, rotation=rotation)
-        newhouse.place()
+        threading.Thread(target=newhouse.place).start()
         rotation += 1
 
     court = Courtyard(x=x + 21, y=y, z=z + 21)
@@ -80,8 +81,8 @@ def generate_city_blocks(x, y, z):
 
 
 def generate_city(x, y, z):
-    generate_city_blocks(x, y, z)
-    street.city_location(x, y - 1, z)
+    threading.Thread(target=generate_city_blocks, args=(x, y, z)).start()
+    threading.Thread(target=street.city_location, args=(x, y - 1, z)).start()
 
 
 buildArea = getBuildArea()

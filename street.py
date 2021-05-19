@@ -1,3 +1,4 @@
+import threading
 import Structure
 import numpy as np
 from random import sample
@@ -361,8 +362,8 @@ def city_perimeter(x, y, z):
 
 # builds city
 def city_location(x, y, z):
-    city_perimeter(x, y, z)
-    city_network(x, y + 1, z)
+    threading.Thread(target=city_perimeter, args=(x, y, z)).start()
+    threading.Thread(target=city_network, args=(x, y + 1, z)).start()
 
 # square city
 
