@@ -1,5 +1,6 @@
 import WorldEdit
 from Structure import Structure
+from materials import Fences, Walls, BuildingBlocks, Doors
 import numpy as np
 import os
 
@@ -50,13 +51,55 @@ class MiddleHouse:
 
             if floorIndex == 0:
                 structure = self._getStructure('bottomMiddle')
+                default_materials = self.findmaterials(structure)
+                if 'buildingblock' in default_materials:
+                    structure.replaceMaterial(default_materials['buildingblock'], self.rng.choice(BuildingBlocks))
+                if 'door' in default_materials:
+                    structure.replaceMaterial(default_materials['door'], self.rng.choice(Doors))
             elif not upperFloor:
                 structure = self._getStructure('upperMiddle')
+                default_materials = self.findmaterials(structure)
+                if 'fence' in default_materials:
+                    structure.replaceMaterial(default_materials['fence'], self.rng.choice(Fences))
+                if 'wall' in default_materials:
+                    structure.replaceMaterial(default_materials['wall'], self.rng.choice(Walls))
+                if 'buildingblock' in default_materials:
+                    structure.replaceMaterial(default_materials['buildingblock'], self.rng.choice(BuildingBlocks))
+                if 'door' in default_materials:
+                    structure.replaceMaterial(default_materials['door'], self.rng.choice(Doors))
                 upperFloor = True
 
             self._buildStructure(structure, yOffset)
 
             yOffset = yOffset + structure.getSizeY()
+
+    def findmaterials(self, structure):
+        materials = structure.getMaterialList()
+        material_set = set(materials)
+        material_dict = {}
+
+        #find the current balcony
+        fence = material_set.intersection(Fences)
+        if fence:
+            fence = fence.pop()
+            material_dict['fence'] = fence
+
+        wall = material_set.intersection(Walls)
+        if wall:
+            wall = wall.pop()
+            material_dict['wall'] = wall
+        
+        buildingblock = material_set.intersection(BuildingBlocks)
+        if buildingblock:
+            buildingblock = buildingblock.pop()
+            material_dict['buildingblock'] = buildingblock
+    
+        door = material_set.intersection(Doors)
+        if door:
+            door = door.pop()
+            material_dict['door'] = door
+
+        return material_dict
 
     def _getStructure(self, structureType):
         return Structure(self.rng.choice(self.structures[structureType]), rotation=self.rotation)
