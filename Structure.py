@@ -160,7 +160,7 @@ class Structure:
         return self.materials
         
 
-    def place(self, includeAir=False):
+    def place(self, includeAir=True):
         for block in self.file["blocks"]:
             blockMaterial = self._getBlockMaterial(block)
 
