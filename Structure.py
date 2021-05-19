@@ -1,12 +1,15 @@
+import numpy as np
 import WorldEdit
 import nbt
 import interfaceUtils
+import mapUtils
 
 # With this class you can load in an NBT-encoded Minecraft Structure file
 # (https://minecraft.fandom.com/wiki/Structure_Block_file_format) and place them in the world.
 
 
 # TODO add optional JSON file to each structure defining the origin of the structure
+
 
 class Structure:
 
@@ -18,6 +21,7 @@ class Structure:
     rotation = ROTATE_NORTH
 
     origin = [0, 0, 0]
+    debug = False
 
     def __init__(self, structure, x=0, y=0, z=0, rotation=ROTATE_NORTH):
         self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
@@ -56,25 +60,61 @@ class Structure:
 
             # Change origin point depending on rotation
             if rotation == self.ROTATE_EAST:
-                self.origin[0] = self.getSizeX()
+                self.origin[0] = -self.getSizeX() + 1
             elif rotation == self.ROTATE_SOUTH:
-                self.origin[0] = self.getSizeX()
-                self.origin[2] = self.getSizeZ()
+                self.origin[0] = self.getSizeX() + 1
+                self.origin[2] = self.getSizeZ() + 1
             elif rotation == self.ROTATE_WEST:
-                self.origin[2] = self.getSizeZ()
+                self.origin[2] = self.getSizeZ() + 1
 
     def getSizeX(self):
         if self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST:
-            return self.file["size"][2].value
-        return self.file["size"][0].value
+            return self.file["size"][2].value * self.getRotationScaler()
+        return self.file["size"][0].value * self.getRotationScaler()
 
     def getSizeY(self):
         return self.file["size"][1].value
 
     def getSizeZ(self):
         if self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST:
-            return self.file["size"][0].value
-        return self.file["size"][2].value
+            return self.file["size"][0].value * self.getRotationScaler()
+        return self.file["size"][2].value * self.getRotationScaler()
+
+    def getOriginInWorldSpace(self):
+        return [
+            self.x + self.origin[0],
+            self.y + self.origin[1],
+            self.z + self.origin[2]
+        ]
+
+    def getFarCornerInWorldSpace(self):
+        worldSpaceOrigin = self.getOriginInWorldSpace()
+        return mapUtils.rotatePointAroundOrigin(
+            worldSpaceOrigin,
+            [
+                worldSpaceOrigin[0] + self.getSizeX() - (1 * self.getRotationScaler()),
+                worldSpaceOrigin[1] + self.getSizeY() - 1,
+                worldSpaceOrigin[2] + self.getSizeZ() - (1 * self.getRotationScaler())
+            ],
+            self.rotation
+        )
+
+    def getRotationScaler(self):
+        if self.rotation == self.ROTATE_NORTH or self.rotation == self.ROTATE_EAST:
+            return 1
+        return -1
+
+    def getShortestDimension(self):
+        return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+
+    def getLongestDimension(self):
+        return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+
+    def getShortestSize(self):
+        return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getShortestDimension()]
+
+    def getLongestSize(self):
+        return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getLongestDimension()]
 
     # Add dict of materials from the structure file that need replaced with something else.
     # eg. "minecraft:iron_block", "minecraft:gold_block" will put gold blocks where the structure file has iron blocks
@@ -127,3 +167,15 @@ class Structure:
             WorldEdit.setBlock(blockPosition[0], blockPosition[1], blockPosition[2], blockMaterial, blockProperties)
 
         interfaceUtils.sendBlocks()
+
+        if self.debug:
+            WorldEdit.fill(
+                *self.getOriginInWorldSpace(),
+                *self.getOriginInWorldSpace(),
+                "minecraft:red_wool"
+            )
+            WorldEdit.fill(
+                *self.getFarCornerInWorldSpace(),
+                *self.getFarCornerInWorldSpace(),
+                "minecraft:green_wool"
+            )

@@ -1,15 +1,14 @@
 import WorldEdit
-import mapUtils
 from Structure import Structure
 import numpy as np
 import os
 
 
-class House:
+class MiddleHouse:
 
     structures = dict()
-    houseWidth = 22
-    houseDepth = 22
+    houseWidth = 21
+    houseDepth = 21
 
     def __init__(self, x=0, y=0, z=0, rotation=Structure.ROTATE_NORTH):
         self.x = x
@@ -45,36 +44,23 @@ class House:
 
     def place(self):
         yOffset = 0
+        #determine if the upperfloor is already chosen
+        upperFloor = False
         for floorIndex in range(self.numberOfFloors):
 
             if floorIndex == 0:
-                structure = self._getStructure('bottomFloor', yOffset)
-            elif floorIndex == self.numberOfFloors - 1:
-                structure = self._getStructure('roof', yOffset)
-            else:
-                structure = self._getStructure('floor', yOffset)
+                structure = self._getStructure('bottomMiddle')
+            elif not upperFloor:
+                structure = self._getStructure('upperMiddle')
+                upperFloor = True
 
-            self._buildStructure(structure)
-
-            structureOrigin = structure.getOriginInWorldSpace()
-            structureFarCorner = structure.getFarCornerInWorldSpace()
-            structureFarCorner[1] = structure.y
-            floorPerimiter = [
-                *structureOrigin,
-                *structureFarCorner
-            ]
-            print(floorPerimiter)
-            # TODO draw floor by projecting point outwards? https://stackoverflow.com/questions/9605556/how-to-project-a-point-onto-a-plane-in-3d
+            self._buildStructure(structure, yOffset)
 
             yOffset = yOffset + structure.getSizeY()
 
-    def _getStructure(self, structureType, yOffset):
-        return Structure(
-            self.rng.choice(self.structures[structureType]),
-            x=self.x, y=self.y + yOffset, z=self.z,
-            rotation=self.rotation
-        )
+    def _getStructure(self, structureType):
+        return Structure(self.rng.choice(self.structures[structureType]), rotation=self.rotation)
 
-    def _buildStructure(self, structure):
+    def _buildStructure(self, structure, yOffset):
+        structure.setPosition(self.x, self.y + yOffset, self.z)
         structure.place()
-
