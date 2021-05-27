@@ -4,6 +4,7 @@ import nbt
 import interfaceUtils
 import mapUtils
 
+
 # With this class you can load in an NBT-encoded Minecraft Structure file
 # (https://minecraft.fandom.com/wiki/Structure_Block_file_format) and place them in the world.
 
@@ -12,7 +13,6 @@ import mapUtils
 
 
 class Structure:
-
     ROTATE_NORTH = 0
     ROTATE_EAST = 1
     ROTATE_SOUTH = 2
@@ -22,12 +22,22 @@ class Structure:
 
     debug = False
 
-    def __init__(self, structure, x=0, y=0, z=0, rotation=ROTATE_NORTH, originX=0, originY=0, originZ=0):
+    def __init__(self,
+                 structure: str,
+                 x: int = 0, y: int = 0, z: int = 0,
+                 rotation: int = ROTATE_NORTH,
+                 originX: int = 0, originY: int = 0, originZ: int = 0,
+                 rotateAroundCenter: bool = False
+                 ):
         self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
         self.x = x
         self.y = y
         self.z = z
         self.origin = [originX, originY, originZ]
+        # If true, set origin to the center of the block. Use structures with an odd size value on both the X and Z
+        # axis for the best, most predictable result.
+        if rotateAroundCenter:
+            self.origin = self.getHorizontalCenter()
         self.setRotation(rotation)
         self.materialReplacements = dict()
 
@@ -38,6 +48,14 @@ class Structure:
             self.y = y
         if z is not None:
             self.z = z
+
+    def setOrigin(self, x=None, y=None, z=None):
+        if x is not None:
+            self.origin[0] = x
+        if y is not None:
+            self.origin[1] = y
+        if z is not None:
+            self.origin[2] = z
 
     def setRotation(self, rotation):
         if rotation is not None and 0 <= rotation <= 3:
@@ -77,36 +95,59 @@ class Structure:
         return mapUtils.rotatePointAroundOrigin(
             worldSpaceOrigin,
             [
-                worldSpaceOrigin[0] + self.getSizeX() - 1,
-                worldSpaceOrigin[1] + self.getSizeY() - 1,
-                worldSpaceOrigin[2] + self.getSizeZ() - 1
+                worldSpaceOrigin[0] + (self.getSizeX() - self.origin[0]) - 1,
+                worldSpaceOrigin[1] + (self.getSizeY() - self.origin[1]) - 1,
+                worldSpaceOrigin[2] + (self.getSizeZ() - self.origin[2]) - 1
             ],
             self.rotation
         )
 
+    def getHorizontalCenter(self):
+        return [
+            int(np.round(self.getSizeX() / 2)),
+            self.origin[1],
+            int(np.round(self.getSizeZ() / 2))
+        ]
+
     def getShortestDimension(self):
-        return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+        if self.rotation % 2 == 0:
+            return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+        return np.argmin([np.abs(self.getSizeZ()), np.abs(self.getSizeY()), np.abs(self.getSizeX())])
 
     def getLongestDimension(self):
-        return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+        if self.rotation % 2 == 0:
+            return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
+        return np.argmax([np.abs(self.getSizeZ()), np.abs(self.getSizeY()), np.abs(self.getSizeX())])
 
     def getShortestHorizontalDimension(self):
-        return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeZ())]) * 2
+        if self.rotation % 2 == 0:
+            return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeZ())]) * 2
+        return np.argmin([np.abs(self.getSizeZ()), np.abs(self.getSizeX())]) * 2
 
     def getLongestHorizontalDimension(self):
-        return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeZ())]) * 2
+        if self.rotation % 2 == 0:
+            return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeZ())]) * 2
+        return np.argmax([np.abs(self.getSizeZ()), np.abs(self.getSizeX())]) * 2
 
     def getShortestSize(self):
-        return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getShortestDimension()]
+        if self.rotation % 2 == 0:
+            return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getShortestDimension()]
+        return [self.getSizeZ(), self.getSizeY(), self.getSizeX()][self.getShortestDimension()]
 
     def getLongestSize(self):
-        return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getLongestDimension()]
+        if self.rotation % 2 == 0:
+            return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getLongestDimension()]
+        return [self.getSizeZ(), self.getSizeY(), self.getSizeX()][self.getLongestDimension()]
 
     def getShortestHorizontalSize(self):
-        return [self.getSizeX(), 0, self.getSizeZ()][self.getShortestHorizontalDimension()]
+        if self.rotation % 2 == 0:
+            return [self.getSizeX(), 0, self.getSizeZ()][self.getShortestHorizontalDimension()]
+        return [self.getSizeZ(), 0, self.getSizeX()][self.getShortestHorizontalDimension()]
 
     def getLongestHorizontalSize(self):
-        return [self.getSizeX(), 0, self.getSizeZ()][self.getLongestHorizontalDimension()]
+        if self.rotation % 2 == 0:
+            return [self.getSizeX(), 0, self.getSizeZ()][self.getLongestHorizontalDimension()]
+        return [self.getSizeZ(), 0, self.getSizeX()][self.getLongestHorizontalDimension()]
 
     # Add dict of materials from the structure file that need replaced with something else.
     # eg. "minecraft:iron_block", "minecraft:gold_block" will put gold blocks where the structure file has iron blocks
@@ -133,7 +174,7 @@ class Structure:
                 if key == "facing" and self.rotation != self.ROTATE_NORTH:
                     properties[key] = self.ROTATIONS[
                         (self.ROTATIONS.index(properties[key]) + self.rotation) % len(self.ROTATIONS)
-                    ]
+                        ]
                 if key == "axis" and (self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST):
                     if properties[key] == "x":
                         properties[key] = "z"
@@ -162,7 +203,7 @@ class Structure:
                 block["pos"][0].value + self.x,
                 block["pos"][1].value + self.y,
                 block["pos"][2].value + self.z
-              ]
+            ]
             blockProperties = self._getBlockProperties(block)
             WorldEdit.setBlock(blockPosition[0], blockPosition[1], blockPosition[2], blockMaterial, blockProperties)
 
