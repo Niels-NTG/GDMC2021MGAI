@@ -35,8 +35,6 @@ def getMostFrequentHeight(heightMap):
 
 def rotatePointAroundOrigin(origin, point, rotation):
     angle = np.deg2rad(rotation * 90)
-    if rotation % 2 == 1:
-        angle = np.deg2rad(rotation * 90) - np.pi / 2
     return [
         int(np.round(np.cos(angle) * (point[0] - origin[0]) - np.sin(angle) * (point[2] - origin[2]) + origin[0], 4)),
         point[1],

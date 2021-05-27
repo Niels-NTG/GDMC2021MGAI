@@ -20,14 +20,14 @@ class Structure:
     ROTATIONS = ["north", "east", "south", "west"]
     rotation = ROTATE_NORTH
 
-    origin = [0, 0, 0]
     debug = False
 
-    def __init__(self, structure, x=0, y=0, z=0, rotation=ROTATE_NORTH):
+    def __init__(self, structure, x=0, y=0, z=0, rotation=ROTATE_NORTH, originX=0, originY=0, originZ=0):
         self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
         self.x = x
         self.y = y
         self.z = z
+        self.origin = [originX, originY, originZ]
         self.setRotation(rotation)
         self.materialReplacements = dict()
 
@@ -46,39 +46,24 @@ class Structure:
         # Change position of blocks inside structure to match rotation.
         if rotation != self.ROTATE_NORTH:
             for block in self.file["blocks"]:
-                oldX = block["pos"][0].value
-                oldZ = block["pos"][2].value
-                if rotation == self.ROTATE_EAST:
-                    block["pos"][0].value = -oldZ
-                    block["pos"][2].value = oldX
-                elif rotation == self.ROTATE_SOUTH:
-                    block["pos"][0].value = -oldX
-                    block["pos"][2].value = -oldZ
-                elif rotation == self.ROTATE_WEST:
-                    block["pos"][0].value = oldZ
-                    block["pos"][2].value = -oldX
-
-            # Change origin point depending on rotation
-            if rotation == self.ROTATE_EAST:
-                self.origin[0] = -self.getSizeX() + 1
-            elif rotation == self.ROTATE_SOUTH:
-                self.origin[0] = self.getSizeX() + 1
-                self.origin[2] = self.getSizeZ() + 1
-            elif rotation == self.ROTATE_WEST:
-                self.origin[2] = self.getSizeZ() + 1
+                currentPosition = [
+                    block["pos"][0].value,
+                    block["pos"][1].value,
+                    block["pos"][2].value
+                ]
+                newPosition = mapUtils.rotatePointAroundOrigin(self.origin, currentPosition, rotation)
+                block["pos"][0].value = newPosition[0]
+                block["pos"][1].value = newPosition[1]
+                block["pos"][2].value = newPosition[2]
 
     def getSizeX(self):
-        if self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST:
-            return self.file["size"][2].value * self.getRotationScaler()
-        return self.file["size"][0].value * self.getRotationScaler()
+        return self.file["size"][0].value
 
     def getSizeY(self):
         return self.file["size"][1].value
 
     def getSizeZ(self):
-        if self.rotation == self.ROTATE_EAST or self.rotation == self.ROTATE_WEST:
-            return self.file["size"][0].value * self.getRotationScaler()
-        return self.file["size"][2].value * self.getRotationScaler()
+        return self.file["size"][2].value
 
     def getOriginInWorldSpace(self):
         return [
@@ -92,17 +77,12 @@ class Structure:
         return mapUtils.rotatePointAroundOrigin(
             worldSpaceOrigin,
             [
-                worldSpaceOrigin[0] + self.getSizeX() - (1 * self.getRotationScaler()),
+                worldSpaceOrigin[0] + self.getSizeX() - 1,
                 worldSpaceOrigin[1] + self.getSizeY() - 1,
-                worldSpaceOrigin[2] + self.getSizeZ() - (1 * self.getRotationScaler())
+                worldSpaceOrigin[2] + self.getSizeZ() - 1
             ],
             self.rotation
         )
-
-    def getRotationScaler(self):
-        if self.rotation == self.ROTATE_NORTH or self.rotation == self.ROTATE_EAST:
-            return 1
-        return -1
 
     def getShortestDimension(self):
         return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
@@ -192,10 +172,10 @@ class Structure:
             WorldEdit.fill(
                 *self.getOriginInWorldSpace(),
                 *self.getOriginInWorldSpace(),
-                "minecraft:red_wool"
+                "minecraft:orange_wool"
             )
             WorldEdit.fill(
                 *self.getFarCornerInWorldSpace(),
                 *self.getFarCornerInWorldSpace(),
-                "minecraft:green_wool"
+                "minecraft:purple_wool"
             )
