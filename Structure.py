@@ -110,11 +110,23 @@ class Structure:
     def getLongestDimension(self):
         return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeY()), np.abs(self.getSizeZ())])
 
+    def getShortestHorizontalDimension(self):
+        return np.argmin([np.abs(self.getSizeX()), np.abs(self.getSizeZ())]) * 2
+
+    def getLongestHorizontalDimension(self):
+        return np.argmax([np.abs(self.getSizeX()), np.abs(self.getSizeZ())]) * 2
+
     def getShortestSize(self):
         return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getShortestDimension()]
 
     def getLongestSize(self):
         return [self.getSizeX(), self.getSizeY(), self.getSizeZ()][self.getLongestDimension()]
+
+    def getShortestHorizontalSize(self):
+        return [self.getSizeX(), 0, self.getSizeZ()][self.getShortestHorizontalDimension()]
+
+    def getLongestHorizontalSize(self):
+        return [self.getSizeX(), 0, self.getSizeZ()][self.getLongestHorizontalDimension()]
 
     # Add dict of materials from the structure file that need replaced with something else.
     # eg. "minecraft:iron_block", "minecraft:gold_block" will put gold blocks where the structure file has iron blocks
@@ -151,14 +163,12 @@ class Structure:
         return properties
 
     def getMaterialList(self):
-        self.materials = []
+        materials = []
         for block in self.file["blocks"]:
             blockMaterial = self._getBlockMaterial(block)
-            if blockMaterial not in self.materials:
-                self.materials.append(blockMaterial)
-        
-        return self.materials
-        
+            if blockMaterial not in materials:
+                materials.append(blockMaterial)
+        return materials
 
     def place(self, includeAir=True):
         for block in self.file["blocks"]:
