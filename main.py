@@ -3,7 +3,7 @@ from worldLoader import WorldSlice
 import interfaceUtils
 import numpy as np
 from CornerHouse import CornerHouse
-from MiddleHouse import MiddleHouse
+from House import House
 from Courtyard import Courtyard
 import street
 import WorldEdit
@@ -46,7 +46,7 @@ def buildHouseblock(x, y, z):
         rotation += 1
     rotation = 0
     for (xplace, zplace) in middles:
-        newhouse = MiddleHouse(x=xplace, y=y, z=zplace, rotation=rotation)
+        newhouse = House(x=xplace, y=y, z=zplace, rotation=rotation)
         threading.Thread(target=newhouse.place).start()
         rotation += 1
 

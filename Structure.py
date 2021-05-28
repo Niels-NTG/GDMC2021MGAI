@@ -3,6 +3,7 @@ import WorldEdit
 import nbt
 import interfaceUtils
 import mapUtils
+import os
 
 
 # With this class you can load in an NBT-encoded Minecraft Structure file
@@ -182,6 +183,14 @@ class Structure:
                         properties[key] = "x"
 
         return properties
+
+    @staticmethod
+    def getStructuresInDir(structureDir=""):
+        structureList = []
+        for file in os.listdir("./structures/" + structureDir):
+            if file.endswith(".nbt"):
+                structureList.append(structureDir + "/" + file.replace(".nbt", ""))
+        return structureList
 
     def getMaterialList(self):
         materials = []
