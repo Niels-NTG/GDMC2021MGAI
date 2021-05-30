@@ -6,6 +6,7 @@ from worldLoader import WorldSlice
 from CornerHouse import CornerHouse
 from House import House
 from Courtyard import Courtyard
+from Structure import Structure
 
 
 class HousingBlock:
@@ -46,6 +47,8 @@ class HousingBlock:
 
         worldSlice = WorldSlice((x, z, self.getSizeX(), self.getSizeZ()))
         self.heightMap = mapUtils.calcGoodHeightmap(worldSlice)
+
+        self.rng = np.random.default_rng()
 
         self.houses = []
         self._initHouses()
@@ -135,19 +138,7 @@ class HousingBlock:
         )
         self.houses.append(courtyard)
 
-    def placeSideWalk(self, rect):
-        WorldEdit.fill(
-            *rect,
-            'minecraft:stone_bricks'
-        )
-        WorldEdit.fill(
-            *np.add(rect, [0, 1, 0, 0, 1, 0]),
-            'minecraft:stone_brick_slab'
-        )
-
-    def place(self):
-        for house in self.houses:
-            threading.Thread(target=house.place).start()
+    def placeStreets(self):
 
         # Add streets and sidewalks around the housing block
         medianHeight = mapUtils.getMostFrequentHeight(self.heightMap) - 1
@@ -159,9 +150,14 @@ class HousingBlock:
         )
         northSideWalkRect = [
             self.x + self.westStreetWidth + 1, medianHeight, self.z + self.northStreetWidth + 1,
-            self.farX - self.eastStreetWidth - 1, medianHeight, self.z + self.northStreetWidth + self.northSideWalkWidth + 1
+            self.farX - self.eastStreetWidth - 1, medianHeight,
+            self.z + self.northStreetWidth + self.northSideWalkWidth + 1
         ]
         self.placeSideWalk(northSideWalkRect)
+        sideWalkIndex = northSideWalkRect[0] + 3
+        while sideWalkIndex < northSideWalkRect[3] - 3:
+            sideWalkIndex += self.rng.integers(low=10, high=20)
+            self.placeTree(sideWalkIndex, medianHeight + 1, northSideWalkRect[2] - 1)
 
         WorldEdit.fill(
             self.farX - self.eastStreetWidth, medianHeight, self.z,
@@ -170,32 +166,63 @@ class HousingBlock:
         )
         eastSideWalkRect = [
             self.farX - self.eastStreetWidth - 1, medianHeight, self.z + self.northStreetWidth + 1,
-            self.farX - (self.eastStreetWidth + self.eastSideWalkWidth + 3), medianHeight, self.farZ - self.southStreetWidth - 1,
+            self.farX - (self.eastStreetWidth + self.eastSideWalkWidth + 3), medianHeight,
+            self.farZ - self.southStreetWidth - 1,
         ]
         self.placeSideWalk(eastSideWalkRect)
+        sideWalkIndex = eastSideWalkRect[2] + 3
+        while sideWalkIndex < eastSideWalkRect[5] - 3:
+            sideWalkIndex += self.rng.integers(low=10, high=20)
+            self.placeTree(eastSideWalkRect[0] - 3, medianHeight + 1, sideWalkIndex)
 
         WorldEdit.fill(
             self.farX, medianHeight, self.farZ - self.southStreetWidth,
             self.x, medianHeight, self.farZ,
             'minecraft:gray_concrete'
         )
-
         southSideWalkRect = [
             self.x + self.westStreetWidth + 1, medianHeight, self.farZ - self.southStreetWidth - 1,
             self.farX - self.eastStreetWidth - 1, medianHeight, self.farZ - (self.southStreetWidth + self.southSideWalkWidth)
         ]
         self.placeSideWalk(southSideWalkRect)
+        sideWalkIndex = southSideWalkRect[0] + 3
+        while sideWalkIndex < southSideWalkRect[3] - 3:
+            sideWalkIndex += self.rng.integers(low=10, high=20)
+            self.placeTree(sideWalkIndex, medianHeight + 1, southSideWalkRect[2] - 2)
 
         WorldEdit.fill(
             self.x + self.westStreetWidth, medianHeight, self.z,
             self.x, medianHeight, self.farZ,
             'minecraft:gray_concrete'
         )
-
         westSideWalkRect = [
             self.x + self.westStreetWidth + 1, medianHeight, self.z + self.northStreetWidth + 1,
             self.x + self.westStreetWidth + self.westSideWalkWidth - 2, medianHeight, self.farZ - self.southStreetWidth - 1
         ]
         self.placeSideWalk(westSideWalkRect)
+
+    def placeSideWalk(self, rect):
+        WorldEdit.fill(
+            *rect,
+            'minecraft:stone_bricks'
+        )
+        WorldEdit.fill(
+            *np.add(rect, [0, 1, 0, 0, 1, 0]),
+            'minecraft:stone_brick_slab'
+        )
+
+    def placeTree(self, x, y, z):
+        # Load in some trees
+        Structure(
+            structure=self.rng.choice(Structure.getStructuresInDir("streetFurniture")),
+            x=x,
+            y=y,
+            z=z
+        ).place(includeAir=False)
+
+    def place(self):
+        for house in self.houses:
+            threading.Thread(target=house.place).start()
+        self.placeStreets()
 
 
