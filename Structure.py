@@ -1,16 +1,14 @@
 import numpy as np
 import WorldEdit
-import nbt
+from nbt import nbt
 import interfaceUtils
 import mapUtils
 import os
+import json
 
 
 # With this class you can load in an NBT-encoded Minecraft Structure file
 # (https://minecraft.fandom.com/wiki/Structure_Block_file_format) and place them in the world.
-
-
-# TODO add optional JSON file to each structure defining the origin of the structure
 
 
 class Structure:
@@ -21,6 +19,8 @@ class Structure:
     ROTATIONS = ["north", "east", "south", "west"]
     rotation = ROTATE_NORTH
 
+    customProperties = {}
+
     debug = False
 
     def __init__(self,
@@ -30,16 +30,32 @@ class Structure:
                  originX: int = 0, originY: int = 0, originZ: int = 0,
                  rotateAroundCenter: bool = False
                  ):
-        self.file = nbt.nbt.NBTFile('structures/' + structure + ".nbt", "rb")
+        self.structurePath = structure
+        self.file = nbt.NBTFile('structures/' + structure + ".nbt", "rb")
+
         self.x = x
         self.y = y
         self.z = z
         self.origin = [originX, originY, originZ]
-        # If true, set origin to the center of the block. Use structures with an odd size value on both the X and Z
-        # axis for the best, most predictable result.
-        if rotateAroundCenter:
-            self.origin = self.getHorizontalCenter()
-        self.setRotation(rotation)
+
+        if os.path.isfile('structures/' + structure + '.json'):
+            with open('structures/' + structure + '.json') as JSONfile:
+                self.customProperties = json.load(JSONfile)
+
+        if 'effectiveSpace' in self.customProperties:
+            customEffectiveSpace = self.customProperties['effectiveSpace']
+            self.setOrigin(
+                x=customEffectiveSpace.get('originX'),
+                y=customEffectiveSpace.get('originY'),
+                z=customEffectiveSpace.get('originZ')
+            )
+            self.setSize(
+               x=customEffectiveSpace.get('sizeX'),
+               y=customEffectiveSpace.get('sizeY'),
+               z=customEffectiveSpace.get('sizeZ')
+            )
+
+        self.setRotation(rotation, rotateAroundCenter)
         self.materialReplacements = dict()
 
     def setPosition(self, x=None, y=None, z=None):
@@ -58,7 +74,15 @@ class Structure:
         if z is not None:
             self.origin[2] = z
 
-    def setRotation(self, rotation):
+    def setSize(self, x=None, y=None, z=None):
+        if x is not None:
+            self.file["size"][0].value = x
+        if y is not None:
+            self.file["size"][1].value = y
+        if z is not None:
+            self.file["size"][2].value = z
+
+    def setRotation(self, rotation, rotateAroundCenter=False):
         if rotation is not None and 0 <= rotation <= 3:
             self.rotation = rotation
 
@@ -70,7 +94,8 @@ class Structure:
                     block["pos"][1].value,
                     block["pos"][2].value
                 ]
-                newPosition = mapUtils.rotatePointAroundOrigin(self.origin, currentPosition, rotation)
+                pivot = self.origin if not rotateAroundCenter else self.getHorizontalCenter()
+                newPosition = mapUtils.rotatePointAroundOrigin(pivot, currentPosition, rotation)
                 block["pos"][0].value = newPosition[0]
                 block["pos"][1].value = newPosition[1]
                 block["pos"][2].value = newPosition[2]
@@ -85,20 +110,24 @@ class Structure:
         return self.file["size"][2].value
 
     def getOriginInWorldSpace(self):
-        return [
-            self.x + self.origin[0],
-            self.y + self.origin[1],
-            self.z + self.origin[2]
-        ]
+        return mapUtils.rotatePointAroundOrigin(
+            [self.x, self.y, self.z],
+            [
+                self.x + self.origin[0],
+                self.y + self.origin[1],
+                self.z + self.origin[2]
+            ],
+            self.rotation
+        )
 
     def getFarCornerInWorldSpace(self):
         worldSpaceOrigin = self.getOriginInWorldSpace()
         return mapUtils.rotatePointAroundOrigin(
             worldSpaceOrigin,
             [
-                worldSpaceOrigin[0] + (self.getSizeX() - self.origin[0]) - 1,
-                worldSpaceOrigin[1] + (self.getSizeY() - self.origin[1]) - 1,
-                worldSpaceOrigin[2] + (self.getSizeZ() - self.origin[2]) - 1
+                worldSpaceOrigin[0] + (self.getSizeX() - self.origin[0]),
+                worldSpaceOrigin[1] + (self.getSizeY() - self.origin[1]),
+                worldSpaceOrigin[2] + (self.getSizeZ() - self.origin[2])
             ],
             self.rotation
         )

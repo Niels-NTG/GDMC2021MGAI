@@ -1,3 +1,4 @@
+import WorldEdit
 from Structure import Structure
 from materials import Fences, Walls, BuildingBlocks, Doors
 import numpy as np
@@ -32,6 +33,20 @@ class House:
         self.structures = dict()
 
         self._getStructureFiles()
+
+        self.bottomStructure = self._getStructure('bottomFloor')
+
+    def setPosition(self, x=None, y=None, z=None):
+        if x is not None:
+            self.x = x
+        if y is not None:
+            self.y = y
+        if z is not None:
+            self.z = z
+
+    def setRotation(self, rotation):
+        if rotation is not None and 0 <= rotation <= 3:
+            self.rotation = rotation
 
     def _getStructureFiles(self):
         self.structures['bottomFloor'] = Structure.getStructuresInDir(self.bottomFloorDir)
@@ -68,41 +83,51 @@ class House:
 
     def place(self):
 
-        yOffset = 0
+        yOffset = 1
 
-        # True if materials of the building are already set.
-        hasChosenMaterials = False
+        # Reint bottomstructure with new position
+        self.bottomStructure = Structure(
+            structure=self.bottomStructure.structurePath,
+            x=self.x,
+            y=self.y + yOffset,
+            z=self.z,
+            rotation=self.rotation
+        )
+        defaultMaterials = self.findMaterials(self.bottomStructure)
+        if 'buildingblock' in defaultMaterials:
+            self.bottomStructure.replaceMaterial(defaultMaterials['buildingblock'], self.rng.choice(BuildingBlocks))
+        if 'door' in defaultMaterials:
+            self.bottomStructure.replaceMaterial(defaultMaterials['door'], self.rng.choice(Doors))
+        foundationFarCorner = self.bottomStructure.getFarCornerInWorldSpace()
+        WorldEdit.fill(
+            self.bottomStructure.x, self.y - 1, self.bottomStructure.z,
+            foundationFarCorner[0], self.y, foundationFarCorner[2],
+            "minecraft:stone_bricks"
+        )
+        self.bottomStructure.place()
 
-        for floorIndex in range(self.numberOfFloors):
+        yOffset = yOffset + self.bottomStructure.getSizeY()
 
-            if floorIndex == 0:
-                structure = self._getStructure('bottomFloor')
-                defaultMaterials = self.findMaterials(structure)
-                if 'buildingblock' in defaultMaterials:
-                    structure.replaceMaterial(defaultMaterials['buildingblock'], self.rng.choice(BuildingBlocks))
-                if 'door' in defaultMaterials:
-                    structure.replaceMaterial(defaultMaterials['door'], self.rng.choice(Doors))
-            elif not hasChosenMaterials:
-                structure = self._getStructure('floor')
-                defaultMaterials = self.findMaterials(structure)
-                if 'fence' in defaultMaterials:
-                    structure.replaceMaterial(defaultMaterials['fence'], self.rng.choice(Fences))
-                if 'wall' in defaultMaterials:
-                    structure.replaceMaterial(defaultMaterials['wall'], self.rng.choice(Walls))
-                if 'buildingblock' in defaultMaterials:
-                    structure.replaceMaterial(defaultMaterials['buildingblock'], self.rng.choice(BuildingBlocks))
-                if 'door' in defaultMaterials:
-                    structure.replaceMaterial(defaultMaterials['door'], self.rng.choice(Doors))
-                hasChosenMaterials = True
+        floorStructure = self._getStructure('floor')
+        defaultMaterials = self.findMaterials(floorStructure)
+        if 'fence' in defaultMaterials:
+            floorStructure.replaceMaterial(defaultMaterials['fence'], self.rng.choice(Fences))
+        if 'wall' in defaultMaterials:
+            floorStructure.replaceMaterial(defaultMaterials['wall'], self.rng.choice(Walls))
+        if 'buildingblock' in defaultMaterials:
+            floorStructure.replaceMaterial(defaultMaterials['buildingblock'], self.rng.choice(BuildingBlocks))
+        if 'door' in defaultMaterials:
+            floorStructure.replaceMaterial(defaultMaterials['door'], self.rng.choice(Doors))
 
-            structure.setPosition(y=self.y + yOffset)
-            structure.place()
+        for floorIndex in range(1, self.numberOfFloors):
+            floorStructure.setPosition(y=self.y + yOffset)
+            floorStructure.place()
+            yOffset = yOffset + floorStructure.getSizeY()
 
-            yOffset = yOffset + structure.getSizeY()
-
-    def _getStructure(self, structureType):
+    def _getStructure(self, structureType) -> Structure:
         return Structure(
             self.rng.choice(self.structures[structureType]),
-            x=self.x, y=self.y, z=self.z,
-            rotation=self.rotation
+            rotation=self.rotation,
+            x=self.x,
+            z=self.z
         )
