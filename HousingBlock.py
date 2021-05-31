@@ -8,6 +8,11 @@ from House import House
 from Courtyard import Courtyard
 from Structure import Structure
 
+# Set to True to enable multi-threading. This will make the built go slightly faster, but can also crash the
+# Minecraft Forge server/client when there are too many threads, which may occur when constructing in a large
+# build area.
+USE_THREADING = False
+
 
 class HousingBlock:
 
@@ -154,10 +159,10 @@ class HousingBlock:
             self.z + self.northStreetWidth + self.northSideWalkWidth + 1
         ]
         self.placeSideWalk(northSideWalkRect)
-        sideWalkIndex = northSideWalkRect[0] + 3
+        sideWalkIndex = northSideWalkRect[0] + self.rng.integers(low=3, high=10)
         while sideWalkIndex < northSideWalkRect[3] - 3:
-            sideWalkIndex += self.rng.integers(low=10, high=20)
             self.placeTree(sideWalkIndex, medianHeight + 1, northSideWalkRect[2] - 1)
+            sideWalkIndex += self.rng.integers(low=10, high=20)
 
         WorldEdit.fill(
             self.farX - self.eastStreetWidth, medianHeight, self.z,
@@ -170,10 +175,10 @@ class HousingBlock:
             self.farZ - self.southStreetWidth - 1,
         ]
         self.placeSideWalk(eastSideWalkRect)
-        sideWalkIndex = eastSideWalkRect[2] + 3
+        sideWalkIndex = eastSideWalkRect[2] + self.rng.integers(low=3, high=10)
         while sideWalkIndex < eastSideWalkRect[5] - 3:
-            sideWalkIndex += self.rng.integers(low=10, high=20)
             self.placeTree(eastSideWalkRect[0] - 3, medianHeight + 1, sideWalkIndex)
+            sideWalkIndex += self.rng.integers(low=10, high=20)
 
         WorldEdit.fill(
             self.farX, medianHeight, self.farZ - self.southStreetWidth,
@@ -185,10 +190,10 @@ class HousingBlock:
             self.farX - self.eastStreetWidth - 1, medianHeight, self.farZ - (self.southStreetWidth + self.southSideWalkWidth)
         ]
         self.placeSideWalk(southSideWalkRect)
-        sideWalkIndex = southSideWalkRect[0] + 3
+        sideWalkIndex = southSideWalkRect[0] + self.rng.integers(low=3, high=10)
         while sideWalkIndex < southSideWalkRect[3] - 3:
-            sideWalkIndex += self.rng.integers(low=10, high=20)
             self.placeTree(sideWalkIndex, medianHeight + 1, southSideWalkRect[2] - 2)
+            sideWalkIndex += self.rng.integers(low=10, high=20)
 
         WorldEdit.fill(
             self.x + self.westStreetWidth, medianHeight, self.z,
@@ -202,7 +207,7 @@ class HousingBlock:
         self.placeSideWalk(westSideWalkRect)
 
     def placeSideWalk(self, rect):
-        WorldEdit.fill(
+        WorldEdit.fillEmpty(
             *rect,
             'minecraft:stone_bricks'
         )
@@ -222,7 +227,13 @@ class HousingBlock:
 
     def place(self):
         for house in self.houses:
-            threading.Thread(target=house.place).start()
-        self.placeStreets()
+            if USE_THREADING:
+                threading.Thread(target=house.place).start()
+            else:
+                house.place()
+        if USE_THREADING:
+            threading.Thread(target=self.placeStreets).start()
+        else:
+            self.placeStreets()
 
 

@@ -1,13 +1,10 @@
-import mapUtils
-from worldLoader import WorldSlice
 import interfaceUtils
-import numpy as np
-import threading
-from HousingBlock import HousingBlock
+import HousingBlock
 
-# Do we send blocks in batches to speed up the generation process?
-USE_BATCHING = True
-BATCH_SIZE = 100
+# Set to True to enable multi-threading. This will make the built go slightly faster, but can also crash the
+# Minecraft Forge server/client when there are too many threads, which may occur when constructing in a large
+# build area.
+USE_THREADING = False
 
 
 def getBuildArea(area=(0, 0, 128, 128)):
@@ -29,14 +26,17 @@ def getBuildArea(area=(0, 0, 128, 128)):
 
 buildArea = getBuildArea()
 
+HousingBlock.USE_THREADING = USE_THREADING
+
 settlementSizeX = 0
 while settlementSizeX <= buildArea[2]:
     settlementSizeZ = 0
     while settlementSizeZ <= buildArea[3]:
-        housingBlock = HousingBlock(x=buildArea[0] + settlementSizeX, z=buildArea[1] + settlementSizeZ)
+        housingBlock = HousingBlock.HousingBlock(
+            x=buildArea[0] + settlementSizeX, z=buildArea[1] + settlementSizeZ
+        )
         settlementSizeZ += housingBlock.getSizeZ()
         housingBlock.place()
     settlementSizeX += housingBlock.getSizeX()
 
-if USE_BATCHING:
-    interfaceUtils.sendBlocks()
+interfaceUtils.sendBlocks()
