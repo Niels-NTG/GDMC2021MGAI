@@ -81,7 +81,7 @@ class House:
 
         return materialsDict
 
-    def place(self):
+    def place(self, heightMap):
 
         yOffset = 1
 
@@ -102,6 +102,11 @@ class House:
         WorldEdit.fill(
             self.bottomStructure.x, self.y - 1, self.bottomStructure.z,
             foundationFarCorner[0], self.y, foundationFarCorner[2],
+            "minecraft:stone_bricks"
+        )
+        WorldEdit.fillEmpty(
+            self.bottomStructure.x, self.y - 2, self.bottomStructure.z,
+            foundationFarCorner[0], heightMap.min(), foundationFarCorner[2],
             "minecraft:stone_bricks"
         )
         self.bottomStructure.place()
