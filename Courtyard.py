@@ -14,6 +14,6 @@ class Courtyard(House):
             rotateAroundCenter=True
         )
 
-    def place(self):
+    def place(self, heightMap):
         self.bottomStructure.setPosition(x=self.x, y=self.y, z=self.z)
         self.bottomStructure.place()
